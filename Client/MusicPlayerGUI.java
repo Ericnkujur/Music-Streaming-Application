@@ -40,11 +40,11 @@ public class MusicPlayerGUI implements ActionListener {
     public MusicPlayerGUI() {
 
         // Initialize icons
-        playIcon = new ImageIcon(new ImageIcon("play-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
-        forwardIcon = new ImageIcon(new ImageIcon("forward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
-        backwardIcon = new ImageIcon(new ImageIcon("backward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
-        musicIcon = new ImageIcon("musicIcon.jpg");
-        pauseIcon = new ImageIcon(new ImageIcon("pause-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
+        playIcon = new ImageIcon(new ImageIcon("Client\\play-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
+        forwardIcon = new ImageIcon(new ImageIcon("Client\\forward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
+        backwardIcon = new ImageIcon(new ImageIcon("Client\\backward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
+        musicIcon = new ImageIcon("Client\\musicIcon.jpg");
+        pauseIcon = new ImageIcon(new ImageIcon("Client\\pause-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
 
         // Create frame
         JFrame frame = new JFrame("Music Player");
