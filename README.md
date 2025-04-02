@@ -3,16 +3,18 @@
 To run the Project follow the below steps:
 
 ### step 1:
-Update the USER and PASSWORD and enter your root username and password
+Update the USER and PASSWORD and enter your root username and password in the Music-Streaming-Application\Server\Mus\src\jdbc\DatabaseConnection.java file
 
-
+then,
 open command prompt and type:
+```
 mysql -u root -p
+```
 then enter and then press enter your password
 
 ### step 2:
 then paste the below command:
-
+```
 CREATE DATABASE music_player;
 
 USE music_player;
@@ -44,7 +46,7 @@ INSERT INTO songs (name, artist, genre, path, cover_path, duration) VALUES
 ('rolling in the deep', 'adele', 'pop', 'songs/Rolling In The Deep.wav', 'covers/Rolling In The Deep.jpg', 228),
 ('havana', 'camila cabello', 'pop', 'songs/Havana.wav', 'covers/Havana.jpg', 216),
 ('let me love you', 'dj snake', 'pop', 'songs/Let Me Love You.wav', 'covers/Let Me Love You.jpg', 204);
-
+```
 ## To start server
 
 ### step 3:
@@ -55,10 +57,13 @@ your working directory should be \Music-Streaming-Application
 
 ### step 4:
 type below command to compile the code:
+```
 javac -cp ".;Client/lib/flatlaf-intellij-themes-3.5.4.jar;Client/lib/flatlaf-3.5.4.jar" -d out Client/*.java Server/Mus/src/jdbc/*.java
-
+```
 then run the server:
+```
 java -cp ".;out;Client/lib/flatlaf-intellij-themes-3.5.4.jar;Client/lib/flatlaf-3.5.4.jar;Server/mysql-connector-j-9.2.0.jar" jdbc.server
+```
 
 ## To start GUI
 
@@ -70,10 +75,12 @@ your working directory should be \Music-Streaming-Application
 
 ### step 6:
 type below command to compile the code:
+```
 javac -cp ".;Client/lib/flatlaf-intellij-themes-3.5.4.jar;Client/lib/flatlaf-3.5.4.jar" -d out Client/*.java Server/Mus/src/jdbc/*.java
-
+```
 then run the GUI:
+```
 java -cp ".;out;Client/lib/flatlaf-intellij-themes-3.5.4.jar;Client/lib/flatlaf-3.5.4.jar" MusicPlayerGUI
-
+```
 
 finaly the project should be running
