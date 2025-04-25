@@ -207,56 +207,6 @@ public class Song {
     }
 
     
-
-
-    // Send a request to get details about the selected song
-    public void sendGetSongDetailsRequest(String songTitle) {
-        try (Socket clientSocket = new Socket("localhost", 9806);
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
-
-            String request = "getSongDetails:" + songTitle;
-            out.println(request);
-            System.out.println("Request sent to server: " + request);
-
-            Object response = in.readObject();
-
-            if (response instanceof ArrayList) {
-                ArrayList<String> songDetails = (ArrayList<String>) response;
-
-                if (songDetails.size() == 5) {
-                    String songPath = songDetails.get(0);
-                    String duration = songDetails.get(1);
-                    String artist = songDetails.get(2);
-                    String coverPath = songDetails.get(3);
-                    String songName = songDetails.get(4);
-
-                   
-                    SwingUtilities.invokeLater(() -> {
-                    gui.updateSongDetails(songName, artist, duration, coverPath);
-
-                    
-                    try {
-                        if (!coverPath.isEmpty()) {
-                            ImageIcon coverIcon = new ImageIcon(new ImageIcon(coverPath).getImage().getScaledInstance(290, 290, Image.SCALE_SMOOTH));
-                            // gui.updateCoverImage(coverIcon);  
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error loading cover image: " + e.getMessage());
-                    }
-
-                    // loadAudioFile(songPath);  
-                });
-                } else {
-                    System.err.println("Invalid response format from server.");
-                }
-            } else {
-                System.err.println("Unexpected response from server.");
-            }
-        } catch (Exception e) {
-            System.err.println("Error communicating with server: " + e.getMessage());
-        }
-    }
     
     // learn about this *************************************
     public void sendGetSongRequest(String songTitle) {

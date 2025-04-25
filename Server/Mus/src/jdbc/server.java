@@ -49,10 +49,6 @@ public class server {
                     // Correctly create SongDAO instance with clientSocket
                     SongDAO songDAO = new SongDAO(clientSocket);
                     listAllSongs(songDAO, out); // Send song list to client
-                } else if (request.startsWith("getSongDetails:")) {
-                    String songTitle = request.split(":")[1];
-                    System.out.println("Fetching song details for: " + songTitle);
-                    sendSongDetails(songTitle, out);
                 } else if (request.startsWith("getSongFile:")) {
                     String songTitle = request.split(":")[1];
 
@@ -212,21 +208,6 @@ public class server {
         }
     }
 
-    private static void sendSongDetails(String songTitle, ObjectOutputStream out) {
-        try {
-            List<String> songDetails = SongDAO.getSongDetails(songTitle);
-            if (!songDetails.isEmpty()) {
-                out.writeObject(songDetails);
-            } else {
-                out.writeObject("Song not found");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    
-    
     private static void sendCoverImage(String songTitle, ObjectOutputStream out) {
         String coverPath = SongDAO.getSongCoverPath(songTitle);
         try {
