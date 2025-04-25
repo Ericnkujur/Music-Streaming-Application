@@ -17,7 +17,7 @@ public class server {
     private static final int PORT = 9806;
 
     //Learn about this *****************************
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(10);
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(20);
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {

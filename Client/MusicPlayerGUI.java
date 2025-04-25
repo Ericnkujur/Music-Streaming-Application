@@ -1,11 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-import com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme;
 import com.formdev.flatlaf.util.ColorFunctions;
@@ -13,6 +12,7 @@ import com.formdev.flatlaf.util.ColorFunctions;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -27,15 +27,16 @@ public class MusicPlayerGUI implements ActionListener {
     Color lighter = ColorFunctions.lighten(bg, 0.05f);  // Slightly lighter
     Color darker = ColorFunctions.darken(bg, 0.05f);    // Slightly darker
 
-    JButton playButton, forwardButton, backwardButton, volumeButton;
-    ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon, volumeIcon;
-    
+    JFrame frame;
+    JButton playButton, forwardButton, backwardButton, volumeButton, themeButton;
+    ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon, volumeIcon, lightIcon, darkIcon;
     JSlider playBackSlider, volumeSlider;
     JTable songTable;
     JLabel songTitle, songArtist, timeLabel, durationLabel, musicIconLabel;
-    JPanel panel1;
+    JPanel panel1, panel2;
     DefaultTableModel tableModel;
     JTableHeader header;
+    Color iconColor;
     Song song;
     boolean isPlaying = false;
     private String selectedSongPath = "";
@@ -44,19 +45,23 @@ public class MusicPlayerGUI implements ActionListener {
     public Timer sliderTimer;
     private AtomicLong currentDurationMicros = new AtomicLong(0);
     private volatile boolean sliderBeingAdjusted = false;
+    private boolean isDarkTheme = true;
 
     public MusicPlayerGUI() {
 
+        iconColor = Color.WHITE;
         // Initialize icons
-        playIcon = new ImageIcon(new ImageIcon("Client\\play-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
-        forwardIcon = new ImageIcon(new ImageIcon("Client\\forward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
-        backwardIcon = new ImageIcon(new ImageIcon("Client\\backward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
-        musicIcon = new ImageIcon("Client\\musicIcon.jpg");
-        pauseIcon = new ImageIcon(new ImageIcon("Client\\pause-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
-        volumeIcon = new ImageIcon(new ImageIcon("Client\\volume.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+        playIcon = new ImageIcon(recolorAndScale("Client\\play-solid.png", 55, 75, iconColor));
+        forwardIcon = new ImageIcon(recolorAndScale("Client\\forward-solid.png", 75, 75, iconColor));
+        backwardIcon = new ImageIcon(recolorAndScale("Client\\backward-solid.png", 75, 75, iconColor));
+        musicIcon = new ImageIcon("Client\\musicIcon.jpg"); // No need to recolor
+        pauseIcon = new ImageIcon(recolorAndScale("Client\\pause-solid.png", 55, 75, iconColor));
+        volumeIcon = new ImageIcon(recolorAndScale("Client\\volume.png", 30, 30, iconColor));
+        lightIcon = new ImageIcon(recolorAndScale("Client\\sun.png", 30, 30, iconColor));
+        darkIcon = new ImageIcon(recolorAndScale("Client\\moon.png", 30, 30, iconColor));
 
         // Create frame
-        JFrame frame = new JFrame("Music Player");
+        frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 620);
         frame.setResizable(false);
@@ -66,7 +71,7 @@ public class MusicPlayerGUI implements ActionListener {
         panel1.setBounds(0, 0, 400, 600);
         panel1.setLayout(null);
 
-        JPanel panel2 = new JPanel();
+        panel2 = new JPanel();
         panel2.setBounds(400, 0, 600, 600);
         panel2.setLayout(new BorderLayout());
 
@@ -110,6 +115,14 @@ public class MusicPlayerGUI implements ActionListener {
         text1.setOpaque(false);
         text1.setFont(new Font("Comic Sans", Font.BOLD, 55));
 
+        themeButton = new JButton(lightIcon);
+        themeButton.setBounds(5, 410, 40, 30);
+        themeButton.setFocusable(false);
+        themeButton.setFocusPainted(false);
+        themeButton.setContentAreaFilled(false);
+        themeButton.setBorderPainted(false);
+        themeButton.addActionListener(e -> toggleTheme());
+
         JScrollPane scrollPane = new JScrollPane(songTable);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setOpaque(true);
@@ -119,7 +132,7 @@ public class MusicPlayerGUI implements ActionListener {
         scrollPane.setPreferredSize(new Dimension(580, 400));
 
         musicIconLabel = new JLabel(musicIcon);
-        musicIconLabel.setBounds(50, 50, 290, 290);
+        musicIconLabel.setBounds(57, 50, 290, 290);
 
         // Song title and artist labels
         songTitle = new JLabel("Title");
@@ -168,7 +181,7 @@ public class MusicPlayerGUI implements ActionListener {
 
         // Buttons
         playButton = new JButton(playIcon);
-        playButton.setBounds(150, 470, 75, 75);
+        playButton.setBounds(160, 470, 75, 75);
         playButton.setFocusable(false);
         playButton.setOpaque(false);
         playButton.setContentAreaFilled(false);
@@ -176,7 +189,7 @@ public class MusicPlayerGUI implements ActionListener {
         playButton.addActionListener(this);
 
         backwardButton = new JButton(backwardIcon);
-        backwardButton.setBounds(50, 470, 75, 75);
+        backwardButton.setBounds(60, 470, 75, 75);
         backwardButton.setFocusable(false);
         backwardButton.setOpaque(false);
         backwardButton.setContentAreaFilled(false);
@@ -184,8 +197,7 @@ public class MusicPlayerGUI implements ActionListener {
         backwardButton.addActionListener(this);
         
         forwardButton = new JButton(forwardIcon);
-        forwardButton.setBounds(250, 470, 75, 75);
-        forwardButton.setBounds(250, 470, 75, 75);
+        forwardButton.setBounds(255, 470, 75, 75);
         forwardButton.setFocusable(false);
         forwardButton.setOpaque(false);
         forwardButton.setContentAreaFilled(false);
@@ -203,6 +215,7 @@ public class MusicPlayerGUI implements ActionListener {
         panel1.add(durationLabel);
         panel1.add(volumeSlider);
         panel1.add(volumeButton);
+        panel1.add(themeButton);
         header = songTable.getTableHeader();
         header.setBackground(darker);
         header.setOpaque(true);
@@ -266,7 +279,68 @@ public class MusicPlayerGUI implements ActionListener {
     }
     
     
+    public void toggleTheme() {
+        try {
+            if (isDarkTheme) {
+                UIManager.setLookAndFeel(new FlatSolarizedLightIJTheme());
+                header.setForeground(Color.black);
+                darkIcon = new ImageIcon(recolorAndScale("Client\\moon.png", 30, 30, Color.BLACK));
+                themeButton.setIcon(darkIcon);
+                iconColor = Color.BLACK;
+            } else {
+                UIManager.setLookAndFeel(new FlatSpacegrayIJTheme());
+                header.setForeground(Color.white);
+                themeButton.setIcon(lightIcon);
+                iconColor = Color.WHITE;
+            }
+            // UIManager.put("Slider.trackColor", new Color(0x1C1F26));          // Light track
+            UIManager.put("Slider.thumbColor", new Color(0xBF616A));          // Thumb
+            UIManager.put("Slider.trackValueColor", new Color(0xBF616A));          
+            // UIManager.put("Slider.thumbBorderColor", new Color(0xA3BE8C));    // Thumb border
+            UIManager.put("Slider.trackBorderColor", new Color(0x4C566A));    // Track border
+            UIManager.put("Slider.hoverTrackColor", new Color(0x88C0D0));     // On hover
+            UIManager.put("Slider.focusedTrackColor", new Color(0x81A1C1));   // On focus
     
+            isDarkTheme = !isDarkTheme;
+            SwingUtilities.updateComponentTreeUI(frame);
+    
+            // Update icons with the new icon color
+            playIcon = new ImageIcon(recolorAndScale("Client\\play-solid.png", 55, 75, iconColor));
+            pauseIcon = new ImageIcon(recolorAndScale("Client\\pause-solid.png", 55, 75, iconColor));
+            forwardIcon = new ImageIcon(recolorAndScale("Client\\forward-solid.png", 75, 75, iconColor));
+            backwardIcon = new ImageIcon(recolorAndScale("Client\\backward-solid.png", 75, 75, iconColor));
+            volumeIcon = new ImageIcon(recolorAndScale("Client\\volume.png", 30, 30, iconColor));
+
+            // Apply the new icons to buttons
+            playButton.setIcon(playIcon);
+            forwardButton.setIcon(forwardIcon);
+            backwardButton.setIcon(backwardIcon);
+            volumeButton.setIcon(volumeIcon);
+            
+
+            // Recalculate background colors based on new theme
+            bg = UIManager.getColor("Panel.background");
+            lighter = ColorFunctions.lighten(bg, 0.05f);
+            darker = ColorFunctions.darken(bg, 0.05f);
+
+            iconColor = new JLabel().getForeground(); 
+    
+            // Update component colors
+            panel1.setBackground(bg);
+            panel2.setBackground(darker);
+            header.setBackground(darker);
+            songTable.setBackground(darker);
+            panel1.repaint();
+            panel1.revalidate();
+            panel2.repaint();
+            panel2.revalidate();
+    
+            // Update the entire UI
+            SwingUtilities.updateComponentTreeUI(frame);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
     
     
     
@@ -318,11 +392,6 @@ public class MusicPlayerGUI implements ActionListener {
                     SwingUtilities.invokeLater(() -> {
                         updateSongTable(songList);
                         
-                        // Select and stream the first song by default
-                        // if (songTable.getRowCount() > 0) {
-                        //     songTable.setRowSelectionInterval(0, 2);
-                        //     // getSelectedSong();  // Automatically select and play first song
-                        // }
                     });
                 } else {
                     System.err.println("Unexpected response from server.");
@@ -406,6 +475,36 @@ public class MusicPlayerGUI implements ActionListener {
         }
     }
     
+    public static BufferedImage recolorIcon(BufferedImage image, Color newColor) {
+        BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                int rgba = image.getRGB(x, y);
+                Color col = new Color(rgba, true);
+    
+                // Recolor only dark (likely black) pixels, keep alpha
+                if (col.getAlpha() > 0 && col.getRed() < 100 && col.getGreen() < 100 && col.getBlue() < 100) {
+                    Color newCol = new Color(newColor.getRed(), newColor.getGreen(), newColor.getBlue(), col.getAlpha());
+                    tinted.setRGB(x, y, newCol.getRGB());
+                } else {
+                    tinted.setRGB(x, y, rgba);
+                }
+            }
+        }
+        return tinted;
+    }
+
+    public static Image recolorAndScale(String path, int width, int height, Color color) {
+        try {
+            BufferedImage original = ImageIO.read(new File(path));
+            BufferedImage recolored = recolorIcon(original, color);
+            return recolored.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public void startSliderUpdater(SourceDataLine audioLine, long totalDurationMicros) {
         this.currentDurationMicros.set(totalDurationMicros);
@@ -460,9 +559,6 @@ public class MusicPlayerGUI implements ActionListener {
     }
 
     public static void main(String[] args) {
-        // FlatHiberbeeDarkIJTheme.setup();
-        // FlatGradiantoMidnightBlueIJTheme.setup();
-        // FlatSolarizedLightIJTheme.setup();
         FlatSpacegrayIJTheme.setup();
         new MusicPlayerGUI();
     }
