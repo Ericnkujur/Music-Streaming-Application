@@ -25,14 +25,19 @@ public class SongDAO {
 
 
 
-    public static String getSongPath(String songTitle) {
-        // Correct base path with double backslashes for Windows
-        String basePath = "Server\\Mus\\src\\songs\\";
-
-        // Prepare the file path correctly
-        String filePath = basePath + songTitle.toLowerCase() + ".wav";
-
-        return filePath;
+    public static String getSongPath(String name) {
+        String sql = "SELECT path FROM songs WHERE LOWER(name) = LOWER(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name.toLowerCase());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String songPath = rs.getString("path").toLowerCase();
+                return "Server/Mus/src/"+songPath;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Song not found";
     }
 
 
@@ -45,8 +50,7 @@ public class SongDAO {
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 String dbPath = rs.getString("cover_path").toLowerCase();
-                // return "Server\\Mus\\src\\"+dbPath;
-                return "Server\\Mus\\src\\covers\\"+name.toLowerCase()+".jpg";
+                return "Server\\Mus\\src\\"+dbPath;
             }
         } catch (SQLException e) {
             e.printStackTrace();
