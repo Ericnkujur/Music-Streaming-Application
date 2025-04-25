@@ -2,11 +2,13 @@ import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 import com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme;
+import com.formdev.flatlaf.util.ColorFunctions;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,6 +23,10 @@ import javax.swing.event.ListSelectionListener;
 
 public class MusicPlayerGUI implements ActionListener {
 
+    Color bg = UIManager.getColor("Panel.background");
+    Color lighter = ColorFunctions.lighten(bg, 0.05f);  // Slightly lighter
+    Color darker = ColorFunctions.darken(bg, 0.05f);    // Slightly darker
+
     JButton playButton, forwardButton, backwardButton, volumeButton;
     ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon, volumeIcon;
     
@@ -29,6 +35,7 @@ public class MusicPlayerGUI implements ActionListener {
     JLabel songTitle, songArtist, timeLabel, durationLabel, musicIconLabel;
     JPanel panel1;
     DefaultTableModel tableModel;
+    JTableHeader header;
     Song song;
     boolean isPlaying = false;
     private String selectedSongPath = "";
@@ -51,7 +58,7 @@ public class MusicPlayerGUI implements ActionListener {
         // Create frame
         JFrame frame = new JFrame("Music Player");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000, 600);
+        frame.setSize(1000, 620);
         frame.setResizable(false);
         frame.setLayout(null);
 
@@ -74,6 +81,22 @@ public class MusicPlayerGUI implements ActionListener {
         songTable = new JTable(tableModel);
         songTable.setRowHeight(30);
         songTable.setFont(new Font("Comic Sans", Font.PLAIN, 22));
+        songTable.setShowHorizontalLines(true);
+        songTable.setOpaque(true);
+        songTable.setBorder(null);
+        songTable.setSelectionBackground(new Color(0xBF616A)); 
+        Font headerFont = new Font("Comic Sans", Font.BOLD, 17);
+        songTable.getTableHeader().setFont(headerFont);
+        // Set fixed column widths
+        songTable.getColumnModel().getColumn(0).setPreferredWidth(200); // Title
+        songTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Artist
+        songTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Genre
+        songTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Duration
+        
+        // Disable column resizing
+        for (int i = 0; i < songTable.getColumnCount(); i++) {
+            songTable.getColumnModel().getColumn(i).setResizable(false);
+        }
         songTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         songTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -81,8 +104,20 @@ public class MusicPlayerGUI implements ActionListener {
             }
         });
 
+        JLabel text1 = new JLabel("Popular Songs");
+        text1.setBounds(50, 50, 200, 100);
+        text1.setForeground(new Color(0xBF616A));
+        text1.setOpaque(false);
+        text1.setFont(new Font("Comic Sans", Font.BOLD, 55));
+
         JScrollPane scrollPane = new JScrollPane(songTable);
-        
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setOpaque(true);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBorder(null);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setPreferredSize(new Dimension(580, 400));
+
         musicIconLabel = new JLabel(musicIcon);
         musicIconLabel.setBounds(50, 50, 290, 290);
 
@@ -168,7 +203,15 @@ public class MusicPlayerGUI implements ActionListener {
         panel1.add(durationLabel);
         panel1.add(volumeSlider);
         panel1.add(volumeButton);
-        panel2.add(scrollPane);
+        header = songTable.getTableHeader();
+        header.setBackground(darker);
+        header.setOpaque(true);
+        header.setForeground(Color.white);
+        songTable.setBackground(darker);
+        panel2.setBackground(darker);
+        panel2.setOpaque(true);
+        panel2.add(text1, BorderLayout.NORTH);
+        panel2.add(scrollPane, BorderLayout.CENTER);
         frame.add(panel1);
         frame.add(panel2);
         frame.setVisible(true);
@@ -298,7 +341,12 @@ public class MusicPlayerGUI implements ActionListener {
             String artist = songList.get(i + 1);
             String genre = songList.get(i + 2);
             String duration = songList.get(i + 3);
-            tableModel.addRow(new Object[]{name, artist, genre, duration});
+
+            // Format the duration from seconds to hh:mm:ss
+            long durationInSeconds = Long.parseLong(duration);
+            String formattedDuration = formatDuration(durationInSeconds);
+
+            tableModel.addRow(new Object[]{name, artist, genre, formattedDuration});
         }
     }
 
@@ -392,6 +440,13 @@ public class MusicPlayerGUI implements ActionListener {
         seconds = seconds % 60;
         
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public static String formatDuration(long seconds) {
+        long minutes = (seconds % 3600) / 60;
+        long remainingSeconds = seconds % 60;
+    
+        return String.format("%02d:%02d", minutes, remainingSeconds);
     }
 
     // Update slider position
