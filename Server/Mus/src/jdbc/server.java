@@ -1,6 +1,8 @@
 package jdbc;
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+
 import jdbc.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -53,6 +55,13 @@ public class server {
                     sendSongDetails(songTitle, out);
                 } else if (request.startsWith("getSongFile:")) {
                     String songTitle = request.split(":")[1];
+
+                    // Send cover image first
+                    System.out.println("Sending cover image");
+                    sendCoverImage(songTitle, out);
+
+                    // After the cover image, stream the song file
+                    System.out.println("Streaming song");
                     streamSongFile(songTitle, dataOut, out);
                 } else {
                     out.writeObject("Unknown request");
@@ -72,13 +81,7 @@ public class server {
         }
     }
 
-    private static AudioFormat getAudioFormat(String filePath) 
-        throws UnsupportedAudioFileException, IOException { // ✅ Specific exceptions
 
-        try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(new File(filePath))) {
-            return audioStream.getFormat();
-        }
-    }
     private static void streamSongFile(String songTitle, DataOutputStream dataOut, ObjectOutputStream out) {
         String filePath = SongDAO.getSongPath(songTitle);
         if (filePath == null || filePath.isEmpty()) {
@@ -94,7 +97,7 @@ public class server {
     
         System.out.println("Streaming song: " + songTitle);
     
-        // ✅ Step 1: Get Duration and Send it to Client
+        // Step 1: Get Duration and Send it to Client
         long durationMicros = getDurationMicros(songFile);
         try {
             out.writeObject(durationMicros);  // Send duration to client before streaming audio
@@ -105,7 +108,7 @@ public class server {
             return;
         }
     
-        // ✅ Step 2: Stream Audio as Before
+        // Step 2: Stream Audio as Before
         try (AudioInputStream baseAudioStream = AudioSystem.getAudioInputStream(songFile)) {
             if (baseAudioStream == null) {
                 System.err.println("Error: Base audio stream is null.");
@@ -161,7 +164,7 @@ public class server {
             float frameSize = format.getFrameSize();
             float frameRate = format.getFrameRate();
     
-            // ✅ Duration in microseconds
+            // Duration in microseconds
             return (long) ((audioFileLength / (frameSize * frameRate)) * 1_000_000);
         } catch (UnsupportedAudioFileException | IOException e) {
             System.err.println("Error calculating duration: " + e.getMessage());
@@ -224,23 +227,25 @@ public class server {
 
     
     
-    private static void sendCoverImage(String songTitle, OutputStream out) {
+    private static void sendCoverImage(String songTitle, ObjectOutputStream out) {
         String coverPath = SongDAO.getSongCoverPath(songTitle);
-        sendFile(coverPath, out);
-    }
-    
-    private static void sendFile(String filePath, OutputStream out) {
-        try (FileInputStream fis = new FileInputStream(filePath)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
+        try {
+            File coverFile = new File(coverPath);
+            if (coverFile.exists()) {
+                byte[] coverBytes = Files.readAllBytes(coverFile.toPath());
+                out.writeObject(coverBytes); // Send cover image as byte[]
+                out.flush();
+                System.out.println("Cover image sent for: " + songTitle);
+            } else {
+                System.out.println("NO COVER FOUND!");
+                out.writeObject(new byte[0]); // Send empty byte array if cover not found
             }
-            System.out.println("File sent: " + filePath);
         } catch (IOException e) {
-            System.err.println("Error sending file: " + e.getMessage());
+            System.err.println("Error sending cover image: " + e.getMessage());
         }
     }
+    
+
     
 
 }

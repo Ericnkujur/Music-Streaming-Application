@@ -3,6 +3,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
@@ -263,29 +264,39 @@ public class Song {
             try (Socket socket = new Socket("localhost", 9806);
                  PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                  DataInputStream in = new DataInputStream(socket.getInputStream())) {
-                
+    
                 out.println("getSongFile:" + songTitle);
-                
-                // Read duration first
+    
+                // Receive the cover image first
                 ObjectInputStream objIn = new ObjectInputStream(in);
-                totalDurationMicros = (Long) objIn.readObject();
-                
-                // Read audio format
+                byte[] coverImage = (byte[]) objIn.readObject();  // Expecting cover image as byte[]
+    
+                if (coverImage.length > 0) {
+                    // Convert byte[] to ImageIcon
+                    ByteArrayInputStream byteStream = new ByteArrayInputStream(coverImage);
+                    ImageIcon imageIcon = new ImageIcon(ImageIO.read(byteStream));
+    
+                    // Use the ImageIcon for updating the GUI
+                    gui.updateCoverImage(imageIcon);
+                }
+    
+                //start receiving the song file and stream it
+                totalDurationMicros = (Long) objIn.readObject();  
                 long duration = in.readLong();
                 float sampleRate = in.readFloat();
                 int sampleSize = in.readInt();
                 int channels = in.readInt();
                 boolean signed = in.readBoolean();
                 boolean bigEndian = in.readBoolean();
-                
+    
                 AudioFormat format = new AudioFormat(
                     signed ? AudioFormat.Encoding.PCM_SIGNED : AudioFormat.Encoding.PCM_UNSIGNED,
                     sampleRate, sampleSize, channels, 
                     (sampleSize / 8) * channels, sampleRate, bigEndian);
-                
-                // Start playback
+    
+                // Start playback after receiving the song file
                 playAudioStream(in, format);
-                
+    
             } catch (Exception e) {
                 System.err.println("Playback error: " + e.getMessage());
             }

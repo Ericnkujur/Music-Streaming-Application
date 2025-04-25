@@ -44,7 +44,9 @@ public class SongDAO {
             pstmt.setString(1, name.toLowerCase());
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getString("cover_path");
+                String dbPath = rs.getString("cover_path").toLowerCase();
+                // return "Server\\Mus\\src\\"+dbPath;
+                return "Server\\Mus\\src\\covers\\"+name.toLowerCase()+".jpg";
             }
         } catch (SQLException e) {
             e.printStackTrace();

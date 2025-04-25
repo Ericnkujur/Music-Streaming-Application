@@ -23,9 +23,10 @@ public class MusicPlayerGUI implements ActionListener {
 
     JButton playButton, forwardButton, backwardButton;
     ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon;
+    
     JSlider playBackSlider;
     JTable songTable;
-    JLabel songTitle, songArtist, timeLabel, durationLabel;
+    JLabel songTitle, songArtist, timeLabel, durationLabel, musicIconLabel;
     JPanel panel1;
     DefaultTableModel tableModel;
     Song song;
@@ -81,7 +82,7 @@ public class MusicPlayerGUI implements ActionListener {
 
         JScrollPane scrollPane = new JScrollPane(songTable);
         
-        JLabel musicIconLabel = new JLabel(musicIcon);
+        musicIconLabel = new JLabel(musicIcon);
         musicIconLabel.setBounds(50, 50, 290, 290);
 
         // Song title and artist labels
@@ -324,7 +325,12 @@ public class MusicPlayerGUI implements ActionListener {
         
     }
     
-
+    public void updateCoverImage(ImageIcon newCoverImage) {
+        if (musicIconLabel != null && newCoverImage != null) {
+            musicIconLabel.setIcon(new ImageIcon(newCoverImage.getImage().getScaledInstance(290, 290, Image.SCALE_SMOOTH)));
+            panel1.repaint();
+        }
+    }
     
 
     public void startSliderUpdater(SourceDataLine audioLine, long totalDurationMicros) {
