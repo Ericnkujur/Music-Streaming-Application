@@ -142,6 +142,7 @@ public class MusicPlayerGUI implements ActionListener {
         songArtist = new JLabel("Artist");
         songArtist.setBounds(170, 360, 100, 50);
         songArtist.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        songArtist.setForeground(Color.GRAY);
 
         // Playback slider
         playBackSlider = new JSlider(SwingConstants.HORIZONTAL, 0, 100, 0);
@@ -311,7 +312,11 @@ public class MusicPlayerGUI implements ActionListener {
             volumeIcon = new ImageIcon(recolorAndScale("Client\\volume.png", 30, 30, iconColor));
 
             // Apply the new icons to buttons
-            playButton.setIcon(playIcon);
+            if (isPlaying) {
+                playButton.setIcon(pauseIcon);
+            } else {
+                playButton.setIcon(playIcon);
+            }
             forwardButton.setIcon(forwardIcon);
             backwardButton.setIcon(backwardIcon);
             volumeButton.setIcon(volumeIcon);
