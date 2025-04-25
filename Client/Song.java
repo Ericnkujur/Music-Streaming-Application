@@ -303,6 +303,17 @@ public class Song {
         }).start();
     }
     
+    private FloatControl volumeControl;
+
+    public void setVolume(float volume) {
+        if (volumeControl != null) {
+            float min = volumeControl.getMinimum();
+            float max = volumeControl.getMaximum();
+            float gain = min + (max - min) * volume; // interpolate
+            volumeControl.setValue(gain);
+        }
+    }
+
     private void playAudioStream(InputStream stream, AudioFormat format) {
         try {
             audioLine = AudioSystem.getSourceDataLine(format);
@@ -316,6 +327,10 @@ public class Song {
             audioLine.start();
             byte[] buffer = new byte[4096];
             int bytesRead;
+
+            if (audioLine.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                volumeControl = (FloatControl) audioLine.getControl(FloatControl.Type.MASTER_GAIN);
+            }
             
             while ((bytesRead = stream.read(buffer)) != -1) {
                 synchronized (this) {

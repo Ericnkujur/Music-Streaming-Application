@@ -21,10 +21,10 @@ import javax.swing.event.ListSelectionListener;
 
 public class MusicPlayerGUI implements ActionListener {
 
-    JButton playButton, forwardButton, backwardButton;
-    ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon;
+    JButton playButton, forwardButton, backwardButton, volumeButton;
+    ImageIcon playIcon, forwardIcon, backwardIcon, musicIcon, pauseIcon, volumeIcon;
     
-    JSlider playBackSlider;
+    JSlider playBackSlider, volumeSlider;
     JTable songTable;
     JLabel songTitle, songArtist, timeLabel, durationLabel, musicIconLabel;
     JPanel panel1;
@@ -46,6 +46,7 @@ public class MusicPlayerGUI implements ActionListener {
         backwardIcon = new ImageIcon(new ImageIcon("Client\\backward-solid.png").getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH));
         musicIcon = new ImageIcon("Client\\musicIcon.jpg");
         pauseIcon = new ImageIcon(new ImageIcon("Client\\pause-solid.png").getImage().getScaledInstance(55, 75, Image.SCALE_SMOOTH));
+        volumeIcon = new ImageIcon(new ImageIcon("Client\\volume.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
 
         // Create frame
         JFrame frame = new JFrame("Music Player");
@@ -99,6 +100,29 @@ public class MusicPlayerGUI implements ActionListener {
         playBackSlider.setBounds(50, 400, 300, 50);
         playBackSlider.setOpaque(false);
 
+        volumeButton = new JButton(volumeIcon); // Replace with your icon path
+        volumeButton.setBounds(350, 410, 40, 30);
+        volumeButton.setFocusPainted(false);
+        volumeButton.setContentAreaFilled(false);
+        volumeButton.setBorderPainted(false);
+        volumeButton.addActionListener(e -> {
+            volumeSlider.setVisible(!volumeSlider.isVisible());
+            panel1.revalidate();
+            panel1.repaint();
+        });
+
+        volumeSlider = new JSlider(SwingConstants.VERTICAL,50, 100, 90); // volume from 0 (mute) to 100 (max), default to 80
+        volumeSlider.setBounds(355, 310, 30, 100); 
+        volumeSlider.setVisible(false);
+        volumeSlider.setOpaque(false);
+        volumeSlider.addChangeListener(e -> {
+            if (song != null) {
+                float volume = volumeSlider.getValue() / 100f; // convert to 0.0 - 1.0
+                song.setVolume(volume);
+            }
+        });
+        
+
         timeLabel = new JLabel("00:00", SwingConstants.CENTER);
         timeLabel.setFont(new Font("Arial", Font.BOLD, 16));
         timeLabel.setBounds(20, 430, 100, 30);
@@ -142,6 +166,8 @@ public class MusicPlayerGUI implements ActionListener {
         panel1.add(musicIconLabel);
         panel1.add(timeLabel);
         panel1.add(durationLabel);
+        panel1.add(volumeSlider);
+        panel1.add(volumeButton);
         panel2.add(scrollPane);
         frame.add(panel1);
         frame.add(panel2);
