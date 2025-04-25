@@ -169,7 +169,7 @@ public class MusicPlayerGUI implements ActionListener {
                 song.setVolume(volume);
             }
         });
-        
+        panel1.add(volumeSlider);
 
         timeLabel = new JLabel("00:00", SwingConstants.CENTER);
         timeLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -213,7 +213,6 @@ public class MusicPlayerGUI implements ActionListener {
         panel1.add(musicIconLabel);
         panel1.add(timeLabel);
         panel1.add(durationLabel);
-        panel1.add(volumeSlider);
         panel1.add(volumeButton);
         panel1.add(themeButton);
         header = songTable.getTableHeader();
